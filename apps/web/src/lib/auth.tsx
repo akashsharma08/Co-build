@@ -114,6 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession]);
 
   const refresh = useCallback(async () => {
+    // Yield so any setState runs after an async boundary (not sync in effects).
+    await Promise.resolve();
+
     const { accessToken, refreshToken } = readStoredTokens();
     if (!accessToken && !refreshToken) {
       setLoading(false);
@@ -144,7 +147,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession, loadAvatar, persist]);
 
   useEffect(() => {
-    void refresh();
+    let cancelled = false;
+
+    void (async () => {
+      await refresh();
+      if (cancelled) return;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [refresh]);
 
   const login = useCallback(

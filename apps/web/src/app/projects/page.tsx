@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PageLoader, Spinner } from '@/components/loaders';
 import { PageShell, ScrollPane } from '@/components/page-shell';
 import { TiltCard } from '@/components/tilt-card';
@@ -17,26 +17,44 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false);
 
-  async function load(search = q, nextSkill = skill, nextRole = role) {
-    setFiltering(true);
-    try {
-      const params = new URLSearchParams();
-      if (search) params.set('q', search);
-      if (nextSkill) params.set('skill', nextSkill);
-      if (nextRole) params.set('role', nextRole);
-      const result = await apiFetch<Paginated<Project>>(
-        `/projects?${params.toString()}`,
-      );
-      setProjects(result.data);
-    } finally {
-      setLoading(false);
-      setFiltering(false);
-    }
-  }
+  const load = useCallback(
+    async (search = q, nextSkill = skill, nextRole = role) => {
+      setFiltering(true);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set('q', search);
+        if (nextSkill) params.set('skill', nextSkill);
+        if (nextRole) params.set('role', nextRole);
+        const result = await apiFetch<Paginated<Project>>(
+          `/projects?${params.toString()}`,
+        );
+        setProjects(result.data);
+      } finally {
+        setLoading(false);
+        setFiltering(false);
+      }
+    },
+    [q, skill, role],
+  );
 
   useEffect(() => {
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const result = await apiFetch<Paginated<Project>>('/projects?');
+        if (cancelled) return;
+        setProjects(result.data);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {

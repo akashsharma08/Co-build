@@ -12,15 +12,17 @@ function AuthCallbackInner() {
   const { acceptSession } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const [error, setError] = useState('');
+  const accessToken = params.get('accessToken');
+  const refreshToken = params.get('refreshToken');
+  const missingTokens = !accessToken || !refreshToken;
+  const [asyncError, setAsyncError] = useState('');
 
   useEffect(() => {
-    const accessToken = params.get('accessToken');
-    const refreshToken = params.get('refreshToken');
     if (!accessToken || !refreshToken) {
-      setError('Missing authentication tokens');
       return;
     }
+
+    let cancelled = false;
 
     void (async () => {
       try {
@@ -28,6 +30,8 @@ function AuthCallbackInner() {
           token: accessToken,
           skipAuthRefresh: true,
         });
+        if (cancelled) return;
+
         const auth: AuthResponse = {
           accessToken,
           refreshToken,
@@ -36,14 +40,24 @@ function AuthCallbackInner() {
           user,
         };
         await acceptSession(auth);
+        if (cancelled) return;
         router.replace('/dashboard');
       } catch (err) {
-        setError(
+        if (cancelled) return;
+        setAsyncError(
           err instanceof ApiError ? err.message : 'Could not complete sign-in',
         );
       }
     })();
-  }, [acceptSession, params, router]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [acceptSession, accessToken, refreshToken, router]);
+
+  const error = missingTokens
+    ? 'Missing authentication tokens'
+    : asyncError;
 
   if (error) {
     return (

@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { usePathname } from 'next/navigation';
 import { AppSidebar } from '@/components/app-sidebar';
 import { OverlayLoader } from '@/components/loaders';
@@ -11,57 +16,99 @@ import { useAuth } from '@/lib/auth';
 import { guestRoutes } from '@/lib/nav';
 
 const SIDEBAR_VISIBLE_KEY = 'cobuild-sidebar-visible';
+const SIDEBAR_CHANGE_EVENT = 'cobuild-sidebar-change';
+
+function subscribeSidebarVisibility(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange);
+  window.addEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
+  };
+}
+
+function getSidebarVisibleSnapshot() {
+  return localStorage.getItem(SIDEBAR_VISIBLE_KEY) !== 'false';
+}
+
+function getSidebarVisibleServerSnapshot() {
+  return true;
+}
+
+function setSidebarVisiblePreference(next: boolean) {
+  localStorage.setItem(SIDEBAR_VISIBLE_KEY, String(next));
+  window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
+}
+
+function subscribeDesktop(onStoreChange: () => void) {
+  const media = window.matchMedia('(min-width: 1024px)');
+  media.addEventListener('change', onStoreChange);
+  return () => media.removeEventListener('change', onStoreChange);
+}
+
+function getDesktopSnapshot() {
+  return window.matchMedia('(min-width: 1024px)').matches;
+}
+
+function getDesktopServerSnapshot() {
+  return false;
+}
 
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
+  return useSyncExternalStore(
+    subscribeDesktop,
+    getDesktopSnapshot,
+    getDesktopServerSnapshot,
+  );
+}
 
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 1024px)');
-    const update = () => setIsDesktop(media.matches);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
-  }, []);
-
-  return isDesktop;
+function useSidebarVisible() {
+  return useSyncExternalStore(
+    subscribeSidebarVisibility,
+    getSidebarVisibleSnapshot,
+    getSidebarVisibleServerSnapshot,
+  );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, avatarUrl, token, logout, loading, loggingOut } = useAuth();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [mobileMenuForPath, setMobileMenuForPath] = useState<string | null>(
+    null,
+  );
   const [unread, setUnread] = useState(0);
   const isDesktop = useIsDesktop();
+  const sidebarVisible = useSidebarVisible();
   const pageHeader = useResolvedPageHeader(user?.displayName);
 
   const useSidebar = Boolean(user) && !guestRoutes.has(pathname);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(SIDEBAR_VISIBLE_KEY);
-    if (stored === 'false') {
-      setSidebarVisible(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  const mobileOpen = mobileMenuForPath === pathname;
+  const displayedUnread = token && useSidebar ? unread : 0;
 
   useEffect(() => {
     if (!token || !useSidebar) {
-      setUnread(0);
       return;
     }
+
+    let cancelled = false;
+
     void apiFetch<{ count: number }>('/notifications/unread-count', { token })
-      .then((data) => setUnread(data.count))
-      .catch(() => setUnread(0));
+      .then((data) => {
+        if (!cancelled) setUnread(data.count);
+      })
+      .catch(() => {
+        if (!cancelled) setUnread(0);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [token, pathname, useSidebar]);
 
   useEffect(() => {
     if (!mobileOpen) return;
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setMobileOpen(false);
+      if (event.key === 'Escape') setMobileMenuForPath(null);
     }
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
@@ -72,17 +119,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [mobileOpen]);
 
   function handleNavSelect() {
-    setMobileOpen(false);
-    setSidebarVisible(false);
-    localStorage.setItem(SIDEBAR_VISIBLE_KEY, 'false');
+    setMobileMenuForPath(null);
+    setSidebarVisiblePreference(false);
   }
 
   function toggleSidebarVisibility() {
-    setSidebarVisible((current) => {
-      const next = !current;
-      localStorage.setItem(SIDEBAR_VISIBLE_KEY, String(next));
-      return next;
-    });
+    setSidebarVisiblePreference(!sidebarVisible);
   }
 
   function handleNavToggle() {
@@ -90,7 +132,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       toggleSidebarVisibility();
       return;
     }
-    setMobileOpen((open) => !open);
+    setMobileMenuForPath((current) =>
+      current === pathname ? null : pathname,
+    );
   }
 
   const toggleLabel =
@@ -122,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         className={`app-layout ${sidebarVisible ? '' : 'app-layout--sidebar-hidden'}`}
       >
         <AppSidebar
-          unread={unread}
+          unread={displayedUnread}
           mobileOpen={mobileOpen}
           visible={sidebarVisible}
           onClose={handleNavSelect}
