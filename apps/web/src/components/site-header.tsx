@@ -5,7 +5,7 @@ import { OverlayLoader } from '@/components/loaders';
 import { useAuth } from '@/lib/auth';
 
 export function SiteHeader() {
-  const { user, logout, loading, loggingOut } = useAuth();
+  const { user, loading, loggingOut } = useAuth();
 
   return (
     <>

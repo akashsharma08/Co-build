@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [bootstrapping, setBootstrapping] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -24,19 +24,30 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!token) {
-      if (!loading) setBootstrapping(false);
       return;
     }
+
+    let cancelled = false;
+
     void Promise.all([
       apiFetch<Project[]>('/projects/mine', { token }),
       apiFetch<Application[]>('/applications/mine', { token }),
     ])
       .then(([mine, apps]) => {
+        if (cancelled) return;
         setProjects(mine);
         setApplications(apps);
       })
-      .finally(() => setBootstrapping(false));
-  }, [token, loading]);
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const bootstrapping = Boolean(token) && !loaded;
 
   if (loading || !user || bootstrapping) {
     return <PageLoader label="Preparing your dashboard…" />;
