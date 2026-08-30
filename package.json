@@ -15,7 +15,11 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f postgres"
+    "db:logs": "docker compose logs -f postgres",
+    "stack:up": "docker compose up -d --build",
+    "stack:down": "docker compose down",
+    "stack:logs": "docker compose logs -f",
+    "stack:ps": "docker compose ps"
   },
   "devDependencies": {
     "prettier": "latest",

@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter, Space_Grotesk } from 'next/font/google';
+import { AppShell } from '@/components/app-shell';
+import { PageHeaderProvider } from '@/components/page-header';
+import { AuthProvider } from '@/lib/auth';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const display = Space_Grotesk({
+  variable: '--font-display',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const body = Inter({
+  variable: '--font-body',
   subsets: ['latin'],
 });
 
@@ -18,13 +21,20 @@ export const metadata: Metadata = {
     'Discover projects, meet compatible collaborators, and build together.',
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${display.variable} ${body.variable} h-full overflow-hidden`}>
+      <body className="flex h-full flex-col overflow-hidden antialiased">
+        <AuthProvider>
+          <PageHeaderProvider>
+            <AppShell>{children}</AppShell>
+          </PageHeaderProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

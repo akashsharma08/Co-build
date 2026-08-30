@@ -11,6 +11,9 @@ coverage/
 .env.*
 !.env.example
 
+# Uploaded media
+uploads/
+
 # Logs and OS files
 *.log
 .DS_Store

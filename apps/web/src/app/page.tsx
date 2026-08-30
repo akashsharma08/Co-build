@@ -1,43 +1,53 @@
-export default function Home() {
+import Link from 'next/link';
+import { ScrollPane } from '@/components/page-shell';
+import { TiltCard } from '@/components/tilt-card';
+
+export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-20 sm:px-10">
-      <div className="mb-14 flex items-center gap-3">
-        <span className="grid size-10 place-items-center rounded-xl bg-indigo-600 text-xl font-bold text-white">
-          C
-        </span>
-        <span className="text-lg font-semibold tracking-tight">CoBuild</span>
-      </div>
+    <ScrollPane>
+      <div className="mx-auto flex w-full max-w-6xl flex-col px-3 py-4 sm:px-4">
+        <TiltCard as="section" className="relative overflow-hidden px-4 py-6 sm:px-5">
+          <div className="absolute -right-10 top-0 h-36 w-36 rounded-full bg-[var(--accent)]/20 blur-3xl" />
+          <p className="eyebrow mb-2">Project partner finder</p>
+          <h1 className="max-w-3xl font-[family-name:var(--font-display)] text-2xl leading-tight tracking-tight text-[var(--ink)] sm:text-3xl">
+            CoBuild
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+            Create a profile, discover projects that fit your skills, and apply to
+            teams that want to ship together.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <Link href="/register" className="btn btn-primary">
+              Create account
+            </Link>
+            <Link href="/projects" className="btn btn-secondary">
+              Browse projects
+            </Link>
+          </div>
+        </TiltCard>
 
-      <div className="max-w-3xl">
-        <p className="mb-5 font-mono text-sm font-medium uppercase tracking-[0.2em] text-indigo-600">
-          Project partner finder
-        </p>
-        <h1 className="text-5xl font-semibold leading-[1.05] tracking-[-0.04em] text-slate-950 sm:text-7xl">
-          Find your people.
-          <br />
-          Build what matters.
-        </h1>
-        <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">
-          The foundation is ready for profiles, project discovery, applications,
-          and collaboration features.
-        </p>
+        <section className="card-grid mt-3 md:grid-cols-3">
+          {[
+            [
+              '1. Profile',
+              'Add skills, availability, and what you want to build.',
+            ],
+            [
+              '2. Discover',
+              'Search open projects by role, stack, goal, and stage.',
+            ],
+            [
+              '3. Apply',
+              'Send an introduction and join when the owner accepts you.',
+            ],
+          ].map(([title, copy]) => (
+            <TiltCard key={title} as="article" className="p-3">
+              <h2 className="heading-section">{title}</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">{copy}</p>
+            </TiltCard>
+          ))}
+        </section>
       </div>
-
-      <section className="mt-14 grid gap-4 sm:grid-cols-3">
-        {[
-          ['Frontend', 'Next.js 16 · React 19 · Tailwind CSS'],
-          ['Backend', 'NestJS 11 · REST · OpenAPI'],
-          ['Data', 'PostgreSQL · TypeORM · Migrations'],
-        ].map(([label, value]) => (
-          <article
-            key={label}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-          >
-            <p className="text-sm font-medium text-indigo-600">{label}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{value}</p>
-          </article>
-        ))}
-      </section>
-    </main>
+    </ScrollPane>
   );
 }
