@@ -39,6 +39,26 @@ pnpm dev
 If you prefer app-local environment files, copy the `.env.example` files inside
 `apps/web` and `apps/api`.
 
+## Full Docker stack
+
+Runs PostgreSQL, NestJS API, and Next.js web together:
+
+```bash
+cp .env.example .env
+pnpm stack:up
+pnpm --filter api migration:run   # still manual
+```
+
+```bash
+pnpm stack:ps
+pnpm stack:logs
+pnpm stack:down
+```
+
+- Web: http://localhost:3000
+- API: http://localhost:4000/api/v1/health
+- Postgres (host): `localhost:5433`
+
 ## Commands
 
 ```bash
@@ -47,8 +67,12 @@ pnpm build         # Build all applications
 pnpm lint          # Lint all applications
 pnpm test          # Run unit tests
 pnpm format        # Format the repository
-pnpm db:up         # Start PostgreSQL
-pnpm db:down       # Stop local services
+pnpm db:up         # Start PostgreSQL only
+pnpm db:down       # Stop Compose services
+pnpm stack:up      # Build and start web + api + postgres
+pnpm stack:down    # Stop the full stack
+pnpm stack:logs    # Tail stack logs
+pnpm stack:ps      # Show stack status
 ```
 
 Generate and run database migrations:
@@ -57,6 +81,42 @@ Generate and run database migrations:
 pnpm --filter api migration:generate src/database/migrations/DescriptiveName
 pnpm --filter api migration:run
 ```
+
+## Users API
+
+Authentication:
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
+- `POST /api/v1/auth/logout-all`
+- `GET /api/v1/auth/me`
+- `PATCH /api/v1/auth/password`
+- `PATCH /api/v1/auth/email`
+- `DELETE /api/v1/auth/account`
+- `GET /api/v1/auth/providers`
+- `GET /api/v1/auth/google` / `GET /api/v1/auth/github` (optional OAuth)
+
+Core MVP:
+
+- `GET|PUT /api/v1/profiles/me`
+- `GET|POST /api/v1/projects`
+- `GET /api/v1/projects/mine`
+- `GET|PATCH /api/v1/projects/:id`
+- `POST /api/v1/projects/:id/archive`
+- `GET /api/v1/projects/:id/members`
+- `POST /api/v1/projects/:id/applications`
+- `GET /api/v1/projects/:id/applications`
+- `GET /api/v1/applications/mine`
+- `PATCH /api/v1/applications/:id`
+- `GET /api/v1/members/mine`
+- `GET|PATCH /api/v1/notifications` (+ unread-count, read-all)
+
+Web pages: `/`, `/register`, `/login`, `/auth/callback`, `/dashboard`, `/profile`, `/profile/edit`, `/settings`, `/projects`, `/projects/new`, `/projects/[id]`, `/projects/[id]/edit`, `/applications`, `/notifications`.
+
+Interactive docs: http://localhost:4000/docs
+
 
 ## Suggested MVP implementation order
 
