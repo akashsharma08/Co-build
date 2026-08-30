@@ -127,14 +127,18 @@ export class AuthService {
   }
 
   toPublicUser(user: User): PublicUser {
-    const {
-      passwordHash,
-      oauthSubject: _oauthSubject,
-      ...publicUser
-    } = user;
     return {
-      ...publicUser,
-      hasPassword: Boolean(passwordHash),
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      username: user.username,
+      oauthProvider: user.oauthProvider,
+      role: user.role,
+      status: user.status,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      hasPassword: Boolean(user.passwordHash),
     };
   }
 
@@ -222,11 +226,11 @@ export class AuthService {
     return {
       google: Boolean(
         this.config.get<string>('GOOGLE_CLIENT_ID') &&
-          this.config.get<string>('GOOGLE_CLIENT_SECRET'),
+        this.config.get<string>('GOOGLE_CLIENT_SECRET'),
       ),
       github: Boolean(
         this.config.get<string>('GITHUB_CLIENT_ID') &&
-          this.config.get<string>('GITHUB_CLIENT_SECRET'),
+        this.config.get<string>('GITHUB_CLIENT_SECRET'),
       ),
     };
   }
@@ -415,10 +419,7 @@ export class AuthService {
     });
   }
 
-  async issueSession(
-    user: User,
-    meta: SessionMeta,
-  ): Promise<AuthResponse> {
+  async issueSession(user: User, meta: SessionMeta): Promise<AuthResponse> {
     const refresh = await this.createRefreshToken(user.id, meta);
     return {
       accessToken: this.signAccessToken(user),
@@ -475,10 +476,11 @@ export class AuthService {
   }
 
   private async uniqueUsername(seed: string): Promise<string> {
-    const base = seed
-      .toLowerCase()
-      .replace(/[^a-z0-9_]/g, '')
-      .slice(0, 20) || 'user';
+    const base =
+      seed
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 20) || 'user';
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const candidate =
         attempt === 0 ? base : `${base}${Math.floor(Math.random() * 10000)}`;
@@ -502,9 +504,7 @@ export class AuthService {
   ): Promise<{ rawToken: string; tokenHash: string }> {
     const rawToken = randomBytes(48).toString('hex');
     const tokenHash = this.hashToken(rawToken);
-    const days = Number(
-      this.config.get<string>('REFRESH_TOKEN_DAYS', '30'),
-    );
+    const days = Number(this.config.get<string>('REFRESH_TOKEN_DAYS', '30'));
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
     await this.refreshTokensRepository.save(

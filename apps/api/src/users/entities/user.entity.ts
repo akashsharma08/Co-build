@@ -30,7 +30,12 @@ export class User {
   @Column({ type: 'varchar', length: 320 })
   email!: string;
 
-  @Column({ name: 'password_hash', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'password_hash',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   passwordHash!: string | null;
 
   @Column({ name: 'display_name', type: 'varchar', length: 100 })
@@ -39,10 +44,20 @@ export class User {
   @Column({ type: 'varchar', length: 30 })
   username!: string;
 
-  @Column({ name: 'oauth_provider', type: 'varchar', length: 32, nullable: true })
+  @Column({
+    name: 'oauth_provider',
+    type: 'varchar',
+    length: 32,
+    nullable: true,
+  })
   oauthProvider!: string | null;
 
-  @Column({ name: 'oauth_subject', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'oauth_subject',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   oauthSubject!: string | null;
 
   @Column({

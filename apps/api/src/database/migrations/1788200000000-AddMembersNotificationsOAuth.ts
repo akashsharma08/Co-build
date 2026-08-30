@@ -1,8 +1,6 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddMembersNotificationsOAuth1788200000000
-  implements MigrationInterface
-{
+export class AddMembersNotificationsOAuth1788200000000 implements MigrationInterface {
   name = 'AddMembersNotificationsOAuth1788200000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -68,7 +66,9 @@ export class AddMembersNotificationsOAuth1788200000000
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX "IDX_notifications_user_id_created_at"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_notifications_user_id_created_at"`,
+    );
     await queryRunner.query(`DROP TABLE "notifications"`);
     await queryRunner.query(`DROP INDEX "IDX_project_members_user_id"`);
     await queryRunner.query(`DROP TABLE "project_members"`);

@@ -40,12 +40,7 @@ export class ProfilesService {
     let profile = await this.profilesRepository
       .createQueryBuilder('profile')
       .leftJoin('profile.user', 'user')
-      .addSelect([
-        'user.id',
-        'user.displayName',
-        'user.username',
-        'user.email',
-      ])
+      .addSelect(['user.id', 'user.displayName', 'user.username', 'user.email'])
       .where('profile.userId = :userId', { userId })
       .getOne();
 
@@ -63,12 +58,7 @@ export class ProfilesService {
     const profile = await this.profilesRepository
       .createQueryBuilder('profile')
       .leftJoin('profile.user', 'user')
-      .addSelect([
-        'user.id',
-        'user.displayName',
-        'user.username',
-        'user.email',
-      ])
+      .addSelect(['user.id', 'user.displayName', 'user.username', 'user.email'])
       .where('profile.userId = :userId', { userId })
       .getOne();
     if (!profile) {

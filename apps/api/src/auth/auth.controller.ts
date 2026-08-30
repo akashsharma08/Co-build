@@ -41,7 +41,9 @@ export class AuthController {
   @Post('register')
   @HttpCode(201)
   @ApiOperation({ summary: 'Register with email and password' })
-  @ApiCreatedResponse({ description: 'Registered user with access and refresh tokens' })
+  @ApiCreatedResponse({
+    description: 'Registered user with access and refresh tokens',
+  })
   register(
     @Body() dto: RegisterDto,
     @Headers('user-agent') userAgent?: string,
@@ -52,7 +54,9 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
-  @ApiOkResponse({ description: 'Authenticated user with access and refresh tokens' })
+  @ApiOkResponse({
+    description: 'Authenticated user with access and refresh tokens',
+  })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   login(
     @Body() dto: LoginDto,
@@ -64,7 +68,9 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Rotate refresh token and issue a new access token' })
+  @ApiOperation({
+    summary: 'Rotate refresh token and issue a new access token',
+  })
   @ApiOkResponse({ description: 'New token pair' })
   @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
   refresh(
@@ -87,7 +93,9 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Revoke all refresh token sessions for the current user' })
+  @ApiOperation({
+    summary: 'Revoke all refresh token sessions for the current user',
+  })
   logoutAll(@CurrentUser() user: User) {
     return this.authService.logoutAll(user.id);
   }

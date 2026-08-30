@@ -1,8 +1,6 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddAuthProfilesProjectsApps1787900000000
-  implements MigrationInterface
-{
+export class AddAuthProfilesProjectsApps1787900000000 implements MigrationInterface {
   name = 'AddAuthProfilesProjectsApps1787900000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -117,8 +115,6 @@ export class AddAuthProfilesProjectsApps1787900000000
     await queryRunner.query(`DROP TYPE "availability_range_enum"`);
     await queryRunner.query(`DROP TYPE "experience_level_enum"`);
     await queryRunner.query(`DROP TYPE "remote_preference_enum"`);
-    await queryRunner.query(
-      `ALTER TABLE "users" DROP COLUMN "password_hash"`,
-    );
+    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN "password_hash"`);
   }
 }

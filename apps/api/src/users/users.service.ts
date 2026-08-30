@@ -27,7 +27,8 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  create(createUserDto: CreateUserDto): Promise<User> {
+    void createUserDto;
     throw new ConflictException(
       'Use POST /auth/register to create accounts with passwords',
     );
@@ -82,10 +83,7 @@ export class UsersService {
     }
   }
 
-  async findByOAuth(
-    provider: string,
-    subject: string,
-  ): Promise<User | null> {
+  async findByOAuth(provider: string, subject: string): Promise<User | null> {
     return this.usersRepository.findOneBy({
       oauthProvider: provider,
       oauthSubject: subject,

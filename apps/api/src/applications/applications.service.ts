@@ -10,15 +10,13 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { ProjectMemberRole } from '../members/entities/project-member.entity';
 import { MembersService } from '../members/members.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ProjectStatus } from '../projects/entities/project.entity';
 import { ProjectsService } from '../projects/projects.service';
 import {
   CreateApplicationDto,
   ReviewApplicationDto,
 } from './dto/application.dto';
-import {
-  Application,
-  ApplicationStatus,
-} from './entities/application.entity';
+import { Application, ApplicationStatus } from './entities/application.entity';
 
 @Injectable()
 export class ApplicationsService {
@@ -39,8 +37,10 @@ export class ApplicationsService {
     if (project.ownerId === applicantId) {
       throw new BadRequestException('You cannot apply to your own project');
     }
-    if (project.status !== 'open') {
-      throw new BadRequestException('This project is not accepting applications');
+    if (project.status !== ProjectStatus.OPEN) {
+      throw new BadRequestException(
+        'This project is not accepting applications',
+      );
     }
 
     const application = this.applicationsRepository.create({
@@ -89,7 +89,9 @@ export class ApplicationsService {
   ): Promise<Application[]> {
     const project = await this.projectsService.findOne(projectId);
     if (project.ownerId !== ownerId) {
-      throw new ForbiddenException('Only the project owner can review applications');
+      throw new ForbiddenException(
+        'Only the project owner can review applications',
+      );
     }
     const applications = await this.applicationsRepository.find({
       where: { projectId },
@@ -106,7 +108,9 @@ export class ApplicationsService {
   ): Promise<Application> {
     const application = await this.findOne(applicationId);
     if (application.project.ownerId !== ownerId) {
-      throw new ForbiddenException('Only the project owner can review applications');
+      throw new ForbiddenException(
+        'Only the project owner can review applications',
+      );
     }
 
     const previousStatus = application.status;
@@ -151,7 +155,8 @@ export class ApplicationsService {
 
   private sanitize(application: Application): Application {
     if (application.applicant) {
-      delete (application.applicant as { passwordHash?: string | null }).passwordHash;
+      delete (application.applicant as { passwordHash?: string | null })
+        .passwordHash;
     }
     return application;
   }

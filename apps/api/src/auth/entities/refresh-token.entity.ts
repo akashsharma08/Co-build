@@ -32,7 +32,12 @@ export class RefreshToken {
   @Column({ name: 'revoked_at', type: 'timestamptz', nullable: true })
   revokedAt!: Date | null;
 
-  @Column({ name: 'replaced_by_token_hash', type: 'varchar', length: 128, nullable: true })
+  @Column({
+    name: 'replaced_by_token_hash',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
   replacedByTokenHash!: string | null;
 
   @Column({ name: 'user_agent', type: 'varchar', length: 512, nullable: true })
